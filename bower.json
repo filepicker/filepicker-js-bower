@@ -1,0 +1,27 @@
+{
+  "name": "filepicker-js-bower",
+  "version": "2.0.0",
+  "homepage": "https://github.com/krystiangw/filepicker-js-bower",
+  "description": "Filepicker javascript library",
+  "main": "filepicker.min.js",
+  "keywords": [
+    "filepicker",
+    "uploading",
+    "widget",
+    "file",
+    "upload",
+    "image",
+    "conversion"
+  ],
+  "authors": [
+    "krystiangw"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
