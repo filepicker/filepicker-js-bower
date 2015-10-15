@@ -1,8 +1,8 @@
 {
   "name": "filepicker-js-bower",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "homepage": "https://github.com/krystiangw/filepicker-js-bower",
-  "description": "Filepicker javascript library",
+  "description": "Filepicker javascript client library",
   "main": "filepicker.min.js",
   "keywords": [
     "filepicker",
@@ -20,6 +20,7 @@
   "ignore": [
     "**/.*",
     "node_modules",
+    "package.json",
     "bower_components",
     "test",
     "tests"

@@ -397,6 +397,7 @@ filepicker.extend("exporter", function() {
                 fpfile.filename = data.payload.data.filename;
                 fpfile.mimetype = data.payload.data.type;
                 fpfile.size = data.payload.data.size;
+                fpfile.client = data.payload.data.client;
                 fpfile.isWriteable = true;
                 onSuccess(fpfile);
             }
@@ -409,10 +410,12 @@ filepicker.extend("exporter", function() {
         if (options.debug) {
             setTimeout(function() {
                 onSuccess({
+                    id: 1,
                     url: "https://www.filepicker.io/api/file/-nBq2onTSemLBxlcBWn1",
                     filename: "test.png",
                     mimetype: "image/png",
-                    size: 58979
+                    size: 58979,
+                    client: "computer"
                 });
             }, 1);
             return;
@@ -686,6 +689,7 @@ filepicker.extend("picker", function() {
         addIfExist(data, fpfile, "key");
         addIfExist(data, fpfile, "container");
         addIfExist(data, fpfile, "path");
+        addIfExist(data, fpfile, "client");
         fpfile.isWriteable = true;
         return fpfile;
     };
@@ -717,10 +721,12 @@ filepicker.extend("picker", function() {
         normalizeOptions(options);
         if (options.debug) {
             var dumy_data = {
+                id: 1,
                 url: "https://www.filepicker.io/api/file/-nBq2onTSemLBxlcBWn1",
                 filename: "test.png",
                 mimetype: "image/png",
-                size: 58979
+                size: 58979,
+                client: "computer"
             };
             var dumy_callback;
             if (multiple || options.storeLocation) {
@@ -2554,7 +2560,7 @@ filepicker.extend("json", function() {
     var fp = this;
     var special = {
         "\b": "\\b",
-        "   ": "\\t",
+        "	": "\\t",
         "\n": "\\n",
         "\f": "\\f",
         "\r": "\\r",

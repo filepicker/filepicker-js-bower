@@ -1,10 +1,11 @@
 {
   "name": "filepicker-js-bower",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Bower-friendly version of filepicker-js.",
   "main": "filepicker.min.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm filepicker.js filepicker.min.js filepicker_debug.js && cp node_modules/filepicker-js/dist/filepicker.js node_modules/filepicker-js/dist/filepicker.min.js node_modules/filepicker-js/dist/filepicker_debug.js ./"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/krystiangw/filepicker-js-bower/issues"
   },
-  "homepage": "https://github.com/krystiangw/filepicker-js-bower"
+  "homepage": "https://github.com/krystiangw/filepicker-js-bower",
+  "devDependencies": {
+    "filepicker-js": "2.1.0"
+  }
 }
