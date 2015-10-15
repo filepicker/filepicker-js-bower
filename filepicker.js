@@ -446,7 +446,7 @@ filepicker.extend("exporter", function() {
                 onError(fp.errors.FPError(131));
             }
         };
-        fp.window.open(options.container, options.mobile, fp.urls.constructExportUrl(input, options, id), onClose);
+        fp.window.open(options.container, fp.urls.constructExportUrl(input, options, id), onClose);
         fp.handlers.attach(id, getExportHandler(onSuccessMark, onErrorMark));
     };
     return {
@@ -783,7 +783,7 @@ filepicker.extend("picker", function() {
             url = fp.urls.constructPickUrl(options, id, false);
             handler = getPickHandler(onSuccessMark, onErrorMark, onProgress);
         }
-        fp.window.open(options.container, options.mobile, url, onClose);
+        fp.window.open(options.container, url, onClose);
         fp.handlers.attach(id, handler);
         var key = id + "-upload";
         fp.handlers.attach(key, getUploadingHandler(function() {
@@ -839,7 +839,7 @@ filepicker.extend("window", function() {
         }
         return [ winW, winH ];
     };
-    var openWindow = function(container, mobileOption, src, onClose) {
+    var openWindow = function(container, src, onClose) {
         onClose = onClose || function() {};
         var isMobile = fp.browser.isIOS() || fp.browser.isAndroid();
         if (!container && isMobile) {
@@ -1018,7 +1018,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this;
+    var fp = this, VERSION = "2.1.3";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -1441,7 +1441,8 @@ filepicker.extend(function() {
         convert: convert,
         constructWidget: constructWidget,
         makeDropPane: makeDropPane,
-        FilepickerException: FilepickerException
+        FilepickerException: FilepickerException,
+        version: VERSION
     };
 }, true);
 
@@ -1594,11 +1595,14 @@ filepicker.extend("urls", function() {
     }
     function constructConversionsQuery(conversions) {
         conversions = conversions || [];
-        var allowed = conversions.filter(function(option) {
-            if (allowedConversions.indexOf(option) > -1) {
-                return option;
+        var allowed = [], i, j;
+        for (i in conversions) {
+            for (j in allowedConversions) {
+                if (conversions[i] === allowedConversions[j] && conversions.hasOwnProperty(i)) {
+                    allowed.push(conversions[i]);
+                }
             }
-        });
+        }
         if (!allowed.length) {
             allowed.push("crop");
         }
@@ -2488,9 +2492,7 @@ filepicker.extend("base64", function() {
         return utftext;
     };
     var _utf8_decode = function(utftext) {
-        var string = "";
-        var i = 0;
-        var c = c2 = 0;
+        var string = "", i = 0, c = 0, c2 = 0;
         while (i < utftext.length) {
             c = utftext.charCodeAt(i);
             if (c < 128) {
