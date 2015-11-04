@@ -823,22 +823,6 @@ filepicker.extend("window", function() {
     var WINDOW_NAME = "filepicker_dialog";
     var WINDOW_PROPERTIES = "left=100,top=100,height=600,width=800,menubar=no,toolbar=no,location=no,personalbar=no,status=no,resizable=yes,scrollbars=yes,dependent=yes,dialog=yes";
     var CLOSE_CHECK_INTERVAL = 100;
-    var getWindowSize = function() {
-        var winW, winH;
-        if (document.body && document.body.offsetWidth) {
-            winW = document.body.offsetWidth;
-            winH = document.body.offsetHeight;
-        }
-        if (document.compatMode === "CSS1Compat" && document.documentElement && document.documentElement.offsetWidth) {
-            winW = document.documentElement.offsetWidth;
-            winH = document.documentElement.offsetHeight;
-        }
-        if (window.innerWidth && window.innerHeight) {
-            winW = window.innerWidth;
-            winH = window.innerHeight;
-        }
-        return [ winW, winH ];
-    };
     var openWindow = function(container, src, onClose) {
         onClose = onClose || function() {};
         var isMobile = fp.browser.isIOS() || fp.browser.isAndroid();
@@ -876,8 +860,7 @@ filepicker.extend("window", function() {
     };
     return {
         open: openWindow,
-        WINDOW_NAME: WINDOW_NAME,
-        getSize: getWindowSize
+        WINDOW_NAME: WINDOW_NAME
     };
 });
 
@@ -1031,13 +1014,8 @@ filepicker.extend(function() {
         return this;
     };
     FilepickerException.isClass = true;
-    var checkApiKey = function() {
-        if (!fp.apikey) {
-            throw new fp.FilepickerException("API Key not found");
-        }
-    };
     var pick = function(options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onError = onSuccess;
             onSuccess = options;
@@ -1049,7 +1027,7 @@ filepicker.extend(function() {
         fp.picker.createPicker(options, onSuccess, onError, false, false, onProgress);
     };
     var pickMultiple = function(options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onProgress = onError;
             onError = onSuccess;
@@ -1062,7 +1040,7 @@ filepicker.extend(function() {
         fp.picker.createPicker(options, onSuccess, onError, true, false, onProgress);
     };
     var pickAndStore = function(picker_options, store_options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (!picker_options || !store_options || typeof picker_options === "function" || typeof picker_options === "function") {
             throw new fp.FilepickerException("Not all required parameters given, missing picker or store options");
         }
@@ -1087,7 +1065,7 @@ filepicker.extend(function() {
         fp.picker.createPicker(options, success, onError, multiple, false, onProgress);
     };
     var pickFolder = function(options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onError = onSuccess;
             onSuccess = options;
@@ -1099,7 +1077,7 @@ filepicker.extend(function() {
         fp.picker.createPicker(options, onSuccess, onError, false, true, onProgress);
     };
     var read = function(input, options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (!input) {
             throw new fp.FilepickerException("No input given - nothing to read!");
         }
@@ -1145,7 +1123,7 @@ filepicker.extend(function() {
         }, onError);
     };
     var write = function(fpfile, input, options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (!fpfile) {
             throw new fp.FilepickerException("No fpfile given - nothing to write to!");
         }
@@ -1192,7 +1170,7 @@ filepicker.extend(function() {
         }
     };
     var writeUrl = function(fpfile, input, options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (!fpfile) {
             throw new fp.FilepickerException("No fpfile given - nothing to write to!");
         }
@@ -1220,7 +1198,7 @@ filepicker.extend(function() {
         fp.files.writeUrlToFPUrl(fp.util.trimConvert(fp_url), input, options, onSuccess, onError, onProgress);
     };
     var exportFn = function(input, options, onSuccess, onError) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onError = onSuccess;
             onSuccess = options;
@@ -1250,7 +1228,7 @@ filepicker.extend(function() {
     };
     var processImage = function(input, options, onSuccess, onError, onProgress) {
         var convertUrl;
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onError = onSuccess;
             onSuccess = options;
@@ -1277,7 +1255,7 @@ filepicker.extend(function() {
         fp.picker.createPicker(options, onSuccess, onError, false, false, onProgress, true);
     };
     var store = function(input, options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onProgress = onError;
             onError = onSuccess;
@@ -1312,7 +1290,7 @@ filepicker.extend(function() {
         }
     };
     var storeUrl = function(input, options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onProgress = onError;
             onError = onSuccess;
@@ -1326,7 +1304,7 @@ filepicker.extend(function() {
         fp.files.storeUrl(input, options, onSuccess, onError, onProgress);
     };
     var stat = function(fpfile, options, onSuccess, onError) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onError = onSuccess;
             onSuccess = options;
@@ -1346,7 +1324,7 @@ filepicker.extend(function() {
         fp.files.stat(fp.util.trimConvert(fp_url), options, onSuccess, onError);
     };
     var remove = function(fpfile, options, onSuccess, onError) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (typeof options === "function") {
             onError = onSuccess;
             onSuccess = options;
@@ -1366,7 +1344,7 @@ filepicker.extend(function() {
         fp.files.remove(fp.util.trimConvert(fp_url), options, onSuccess, onError);
     };
     var convert = function(fpfile, convert_options, store_options, onSuccess, onError, onProgress) {
-        checkApiKey();
+        fp.util.checkApiKey();
         if (!fpfile) {
             throw new fp.FilepickerException("No fpfile given - nothing to convert!");
         }
@@ -1421,8 +1399,12 @@ filepicker.extend(function() {
     var makeDropPane = function(div, options) {
         return fp.dragdrop.makeDropPane(div, options);
     };
+    var setResponsiveOptions = function(options) {
+        return fp.responsiveImages.setResponsiveOptions(options);
+    };
     return {
         setKey: setKey,
+        setResponsiveOptions: setResponsiveOptions,
         pick: pick,
         pickFolder: pickFolder,
         pickMultiple: pickMultiple,
@@ -2558,6 +2540,70 @@ filepicker.extend("browser", function() {
 
 "use strict";
 
+filepicker.extend("conversionsUtil", function() {
+    var fp = this, CONVERSION_DOMAIN = (window.location.protocol || "https") + "//process.filepicker.io/";
+    var parseConversionUrl = function(processUrl) {
+        if (!processUrl) {
+            return {
+                url: null,
+                optionsDict: {}
+            };
+        }
+        processUrl = processUrl.replace(CONVERSION_DOMAIN, "");
+        var originalUrl = processUrl.substring(processUrl.indexOf("/http") + 1);
+        processUrl = processUrl.replace("/" + originalUrl, "");
+        var apikey = processUrl.substring(0, processUrl.indexOf("/"));
+        processUrl = processUrl.replace(apikey + "/", "");
+        var segments = processUrl.split("/"), optionsDict = {}, majorOption, minorOptions, minorOption, i, j;
+        for (i in segments) {
+            majorOption = segments[i].split("=");
+            if (majorOption.length > 1) {
+                optionsDict[majorOption[0]] = {};
+                minorOptions = majorOption[1].split(",");
+                for (j in minorOptions) {
+                    minorOption = minorOptions[j].split(":");
+                    if (minorOption.length > 1) {
+                        optionsDict[majorOption[0]][minorOption[0]] = minorOption[1];
+                    }
+                }
+            } else if (segments[i]) {
+                optionsDict[segments[i]] = null;
+            }
+        }
+        return {
+            url: originalUrl,
+            apikey: apikey,
+            optionsDict: optionsDict
+        };
+    };
+    var buildConversionUrl = function(originalUrl, optionsDict, apikey) {
+        var conversionUrl = CONVERSION_DOMAIN + apikey, majorOption, minorOption, length;
+        optionsDict = optionsDict || {};
+        for (majorOption in optionsDict) {
+            conversionUrl += "/" + majorOption;
+            length = fp.util.objectKeys(optionsDict[majorOption] || {}).length;
+            if (length) {
+                conversionUrl += "=";
+            }
+            for (minorOption in optionsDict[majorOption]) {
+                conversionUrl += minorOption + ":" + optionsDict[majorOption][minorOption];
+                if (--length !== 0) {
+                    conversionUrl += ",";
+                }
+            }
+        }
+        conversionUrl += "/" + originalUrl;
+        return conversionUrl;
+    };
+    return {
+        CONVERSION_DOMAIN: CONVERSION_DOMAIN,
+        parseUrl: parseConversionUrl,
+        buildUrl: buildConversionUrl
+    };
+});
+
+"use strict";
+
 filepicker.extend("json", function() {
     var fp = this;
     var special = {
@@ -2688,6 +2734,7 @@ filepicker.extend("util", function() {
             segments: a.pathname.replace(/^\//, "").split("/")
         };
         ret.origin = ret.protocol + "://" + ret.host + (ret.port ? ":" + ret.port : "");
+        ret.rawUrl = (ret.origin + ret.path).replace("/convert", "");
         return ret;
     };
     var endsWith = function(str, suffix) {
@@ -2810,6 +2857,34 @@ filepicker.extend("util", function() {
             return false;
         }
     };
+    var extend = function(obj1, obj2) {
+        for (var i in obj1) {
+            if (obj1.hasOwnProperty(i)) {
+                obj2[i] = obj1[i];
+            }
+        }
+        return obj2;
+    };
+    var checkApiKey = function() {
+        if (!fp.apikey) {
+            throw new fp.FilepickerException("API Key not found");
+        }
+    };
+    var objectKeys = function(obj) {
+        if (typeof Object.keys !== "function") {
+            return function(obj) {
+                var keys = [];
+                for (var i in obj) {
+                    if (obj.hasOwnProperty(i)) {
+                        keys.push(i);
+                    }
+                }
+                return keys;
+            };
+        } else {
+            return Object.keys(obj);
+        }
+    };
     return {
         isArray: isArray,
         isFile: isFile,
@@ -2824,8 +2899,26 @@ filepicker.extend("util", function() {
         console: console,
         clone: clone,
         standardizeFPFile: standardizeFPFile,
-        isCanvasSupported: isCanvasSupported
+        isCanvasSupported: isCanvasSupported,
+        extend: extend,
+        checkApiKey: checkApiKey,
+        objectKeys: objectKeys
     };
+});
+
+"use strict";
+
+filepicker.extend("windowUtils", function() {
+    return {
+        getWidth: getWidth,
+        getHeight: getHeight
+    };
+    function getWidth() {
+        return document.documentElement.clientWidth || document.body && document.body.clientWidth || 1024;
+    }
+    function getHeight() {
+        return document.documentElement.clientHeight || document.body && document.body.clientHeight || 768;
+    }
 });
 
 "use strict";
@@ -3035,6 +3128,182 @@ filepicker.extend("dragdrop", function() {
         enabled: canDragDrop,
         makeDropPane: makeDropPane
     };
+});
+
+"use strict";
+
+filepicker.extend("responsiveImages", function() {
+    var fp = this;
+    var WINDOW_RESIZE_TIMEOUT = 200;
+    var reloadWithDebounce = debounce(function() {
+        constructAll();
+    }, WINDOW_RESIZE_TIMEOUT);
+    return {
+        activate: activate,
+        deactivate: deactivate,
+        setResponsiveOptions: setResponsiveOptions,
+        getResponsiveOptions: getResponsiveOptions,
+        getElementDims: getElementDims,
+        replaceSrc: replaceSrc,
+        getCurrentResizeParams: getCurrentResizeParams,
+        construct: construct,
+        constructParams: constructParams,
+        shouldConstruct: shouldConstruct,
+        roundWithStep: roundWithStep,
+        addWindowResizeEvent: addWindowResizeEvent,
+        removeWindowResizeEvent: removeWindowResizeEvent
+    };
+    function activate() {
+        constructAll();
+        addWindowResizeEvent(reloadWithDebounce);
+    }
+    function deactivate() {
+        removeWindowResizeEvent(reloadWithDebounce);
+    }
+    function constructAll() {
+        var responsiveImages = document.querySelectorAll("img[data-fp-src]"), element, i;
+        for (i = 0; i < responsiveImages.length; i++) {
+            element = responsiveImages[i];
+            if (shouldConstruct(element)) {
+                construct(element);
+            }
+        }
+    }
+    function shouldConstruct(image) {
+        var imageSrc = getSrcAttr(image), changeOnResize = getFpOnResizeAttr(image) || getResponsiveOptions().onResize || "all";
+        if (!imageSrc || changeOnResize === "all") {
+            return true;
+        }
+        if (changeOnResize === "none") {
+            return false;
+        }
+        var shouldBeEnlarged = getCurrentResizeParams(imageSrc).width < getElementDims(image).width;
+        if (shouldBeEnlarged && changeOnResize === "up" || !shouldBeEnlarged && changeOnResize === "down") {
+            return true;
+        }
+        return false;
+    }
+    function getElementDims(elem) {
+        var dims = {};
+        if (elem.parentNode === null) {
+            dims.width = fp.windowUtils.getWidth();
+            dims.height = fp.windowUtils.getWidth();
+            return dims;
+        }
+        if (elem.alt && !elem.fpAltCheck) {
+            elem.parentNode.fpAltCheck = true;
+            return getElementDims(elem.parentNode);
+        }
+        dims.width = elem.offsetWidth;
+        dims.height = elem.offsetHeight;
+        if (!dims.width) {
+            return getElementDims(elem.parentNode);
+        }
+        return dims;
+    }
+    function replaceSrc(elem, newSrc) {
+        var previousSrc = getSrcAttr(elem) || getFpSrcAttr(elem);
+        if (previousSrc !== newSrc) {
+            elem.src = newSrc;
+            if (previousSrc) {
+                elem.onerror = function() {
+                    elem.src = previousSrc;
+                    elem.onerror = null;
+                };
+            }
+        }
+    }
+    function getFpOnResizeAttr(elem) {
+        return elem.getAttribute("data-fp-on-resize");
+    }
+    function getFpPixelRoundAttr(elem) {
+        return elem.getAttribute("data-fp-pixel-round");
+    }
+    function getFpImageQualityAttr(elem) {
+        return elem.getAttribute("fp-image-quality");
+    }
+    function getSrcAttr(elem) {
+        return elem.getAttribute("src");
+    }
+    function getFpSrcAttr(elem) {
+        return elem.getAttribute("data-fp-src");
+    }
+    function getFpKeyAttr(elem) {
+        return elem.getAttribute("data-fp-apikey");
+    }
+    function getFpSignatureAttr(elem) {
+        return elem.getAttribute("data-fp-signature");
+    }
+    function getFpPolicyAttr(elem) {
+        return elem.getAttribute("data-fp-policy");
+    }
+    function getCurrentResizeParams(url) {
+        return fp.conversionsUtil.parseUrl(url).optionsDict.resize || {};
+    }
+    function construct(elem) {
+        var url = getFpSrcAttr(elem), apikey = getFpKeyAttr(elem) || fp.apikey, responsiveOptions = getResponsiveOptions();
+        if (!fp.apikey) {
+            fp.setKey(apikey);
+            fp.util.checkApiKey();
+        }
+        replaceSrc(elem, fp.conversionsUtil.buildUrl(url, constructParams(elem, responsiveOptions), apikey));
+    }
+    function constructParams(elem, responsiveOptions) {
+        responsiveOptions = responsiveOptions || {};
+        var dims = getElementDims(elem), pixelRound = getFpPixelRoundAttr(elem) || responsiveOptions.pixelRound || 10, params = {
+            resize: {
+                width: roundWithStep(dims.width, pixelRound)
+            }
+        }, signature = responsiveOptions.signature || getFpSignatureAttr(elem);
+        if (signature) {
+            params.security = {
+                signature: signature,
+                policy: responsiveOptions.policy || getFpPolicyAttr(elem)
+            };
+        }
+        return params;
+    }
+    function debounce(func, wait) {
+        var timeout;
+        return function() {
+            var context = this;
+            var args = arguments;
+            var later = function() {
+                timeout = null;
+                func.apply(context, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    function addWindowResizeEvent(onWindowResized) {
+        if (window.addEventListener) {
+            window.addEventListener("resize", onWindowResized, false);
+        } else if (window.attachEvent) {
+            window.attachEvent("onresize", onWindowResized);
+        }
+    }
+    function removeWindowResizeEvent(onWindowResized) {
+        if (window.removeEventListener) {
+            window.removeEventListener("resize", onWindowResized, false);
+        } else if (window.detachEvent) {
+            window.detachEvent("onresize", onWindowResized);
+        }
+    }
+    function getResponsiveOptions() {
+        return fp.responsiveOptions || {};
+    }
+    function setResponsiveOptions(options) {
+        options = options || {};
+        if (typeof options !== "object") {
+            throw new fp.FilepickerException("Responsive options must be an object.");
+        }
+        fp.responsiveOptions = options;
+    }
+    function roundWithStep(value, round) {
+        var pixelRounding = round === 0 ? 1 : round;
+        return Math.ceil(value / pixelRounding) * pixelRounding;
+    }
 });
 
 "use strict";
@@ -3433,6 +3702,8 @@ filepicker.extend("widgets", function() {
             constructDragWidget(base);
         } else if (base_type === "filepicker-preview") {
             constructPreview(base);
+        } else if (base.getAttribute("data-fp-src")) {
+            fp.responsiveImages.construct(base);
         } else {
             constructExportWidget(base);
         }
@@ -3479,6 +3750,7 @@ filepicker.extend("widgets", function() {
         var fp = this;
         fp.util.addOnLoad(fp.cookies.checkThirdParty);
         fp.util.addOnLoad(fp.widgets.buildWidgets);
+        fp.util.addOnLoad(fp.responsiveImages.activate);
     });
     delete filepicker.internal;
     delete filepicker.extend;
