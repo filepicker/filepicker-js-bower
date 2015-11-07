@@ -1,6 +1,6 @@
 {
   "name": "filepicker-js-bower",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Bower-friendly version of filepicker-js.",
   "main": "filepicker.min.js",
   "scripts": {
@@ -24,6 +24,6 @@
   },
   "homepage": "https://github.com/krystiangw/filepicker-js-bower",
   "devDependencies": {
-    "filepicker-js": "2.2.0"
+    "filepicker-js": ">=2.2.0"
   }
 }
