@@ -1001,7 +1001,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.1.3";
+    var fp = this, VERSION = "2.2.1";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -3219,9 +3219,6 @@ filepicker.extend("responsiveImages", function() {
     function getFpPixelRoundAttr(elem) {
         return elem.getAttribute("data-fp-pixel-round");
     }
-    function getFpImageQualityAttr(elem) {
-        return elem.getAttribute("fp-image-quality");
-    }
     function getSrcAttr(elem) {
         return elem.getAttribute("src");
     }
@@ -3365,7 +3362,8 @@ filepicker.extend("widgets", function() {
             "data-fp-crop-max": "cropMax",
             "data-fp-crop-min": "cropMin",
             "data-fp-show-close": "showClose",
-            "data-fp-conversions": "conversions"
+            "data-fp-conversions": "conversions",
+            "data-fp-custom-text": "customText"
         }, pickOnlyOptionsMap = {
             "data-fp-mimetypes": "mimetypes",
             "data-fp-extensions": "extensions",
