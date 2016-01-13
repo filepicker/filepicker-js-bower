@@ -1001,7 +1001,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.3.1";
+    var fp = this, VERSION = "2.3.4";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -1141,14 +1141,14 @@ filepicker.extend(function() {
         onError = onError || fp.errors.handleError;
         onProgress = onProgress || function() {};
         var fp_url;
-        if (fp.util.isFPUrl(fpfile)) {
+        if (fp.util.isFPUrl(fp.util.getFPUrl(fpfile))) {
             fp_url = fpfile;
         } else if (fpfile.url) {
             fp_url = fpfile.url;
         } else {
             throw new fp.FilepickerException("Invalid file to write to: " + fpfile + ". Not a filepicker url or FPFile object.");
         }
-        fp_url = fp.util.trimConvert(fp_url);
+        fp_url = fp.util.trimConvert(fp.util.getFPUrl(fp_url));
         if (typeof input === "string") {
             fp.files.writeDataToFPUrl(fp_url, input, options, onSuccess, onError, onProgress);
         } else {
@@ -1188,13 +1188,14 @@ filepicker.extend(function() {
         onError = onError || fp.errors.handleError;
         onProgress = onProgress || function() {};
         var fp_url;
-        if (fp.util.isFPUrl(fpfile)) {
+        if (fp.util.isFPUrl(fp.util.getFPUrl(fpfile))) {
             fp_url = fpfile;
         } else if (fpfile.url) {
             fp_url = fpfile.url;
         } else {
             throw new fp.FilepickerException("Invalid file to write to: " + fpfile + ". Not a filepicker url or FPFile object.");
         }
+        fp_url = fp.util.getFPUrl(fp_url);
         fp.files.writeUrlToFPUrl(fp.util.trimConvert(fp_url), input, options, onSuccess, onError, onProgress);
     };
     var exportFn = function(input, options, onSuccess, onError) {
@@ -1314,13 +1315,14 @@ filepicker.extend(function() {
         onSuccess = onSuccess || function() {};
         onError = onError || fp.errors.handleError;
         var fp_url;
-        if (fp.util.isFPUrl(fpfile)) {
+        if (fp.util.isFPUrl(fp.util.getFPUrl(fpfile))) {
             fp_url = fpfile;
         } else if (fpfile.url) {
             fp_url = fpfile.url;
         } else {
             throw new fp.FilepickerException("Invalid file to get metadata for: " + fpfile + ". Not a filepicker url or FPFile object.");
         }
+        fp_url = fp.util.getFPUrl(fp_url);
         fp.files.stat(fp.util.trimConvert(fp_url), options, onSuccess, onError);
     };
     var remove = function(fpfile, options, onSuccess, onError) {
@@ -1334,13 +1336,14 @@ filepicker.extend(function() {
         onSuccess = onSuccess || function() {};
         onError = onError || fp.errors.handleError;
         var fp_url;
-        if (fp.util.isFPUrl(fpfile)) {
+        if (fp.util.isFPUrl(fp.util.getFPUrl(fpfile))) {
             fp_url = fpfile;
         } else if (fpfile.url) {
             fp_url = fpfile.url;
         } else {
             throw new fp.FilepickerException("Invalid file to remove: " + fpfile + ". Not a filepicker url or FPFile object.");
         }
+        fp_url = fp.util.getFPUrl(fp_url);
         fp.files.remove(fp.util.trimConvert(fp_url), options, onSuccess, onError);
     };
     var convert = function(fpfile, convert_options, store_options, onSuccess, onError, onProgress) {
@@ -1370,7 +1373,7 @@ filepicker.extend(function() {
         }
         options.storeAccess = store_options.access || "private";
         var fp_url;
-        if (fp.util.isFPUrl(fpfile)) {
+        if (fp.util.isFPUrl(fp.util.getFPUrl(fpfile))) {
             fp_url = fpfile;
         } else if (fpfile.url) {
             fp_url = fpfile.url;
@@ -1381,6 +1384,7 @@ filepicker.extend(function() {
         } else {
             throw new fp.FilepickerException("Invalid file to convert: " + fpfile + ". Not a filepicker url or FPFile object.");
         }
+        fp_url = fp.util.getFPUrl(fp_url);
         if (fp_url.indexOf("/convert") > -1) {
             var restConvertOptions = fp.util.parseUrl(fp_url).params;
             restConvertOptions = fp.conversions.mapRestParams(restConvertOptions);
@@ -2144,7 +2148,7 @@ filepicker.extend("files", function() {
         fp.util.setDefault(options, "location", "S3");
         fp.ajax.post(fp.urls.constructStoreUrl(options), {
             data: {
-                url: input
+                url: fp.util.getFPUrl(input)
             },
             json: true,
             success: function(json) {
@@ -2541,7 +2545,7 @@ filepicker.extend("browser", function() {
 "use strict";
 
 filepicker.extend("conversionsUtil", function() {
-    var fp = this, CONVERSION_DOMAIN = (window.location.protocol || "https") + "//process.filepicker.io/";
+    var fp = this, CONVERSION_DOMAIN = fp.urls.BASE.replace("www", "process") + "/";
     var parseConversionUrl = function(processUrl) {
         if (!processUrl) {
             return {
@@ -2817,10 +2821,19 @@ filepicker.extend("util", function() {
         }
     };
     var isFPUrl = function(url) {
-        return typeof url === "string" && url.match("www.filepicker.io/api/file/");
+        return typeof url === "string" && url.match(fp.urls.BASE + "/api/file/");
     };
     var isFPUrlCdn = function(url) {
         return typeof url === "string" && url.match("/api/file/");
+    };
+    var getFPUrl = function(url) {
+        if (typeof url === "string") {
+            var matched = url.match(/cdn.filestackcontent.[\S]*\/([\S]{20,})/);
+            if (matched && matched.length > 1) {
+                return fp.urls.BASE + "/api/file/" + matched[1];
+            }
+        }
+        return url;
     };
     var consoleWrap = function(fn) {
         return function() {
@@ -2899,6 +2912,7 @@ filepicker.extend("util", function() {
         typeOf: typeOf,
         addOnLoad: addOnLoad,
         isFPUrl: isFPUrl,
+        getFPUrl: getFPUrl,
         isFPUrlCdn: isFPUrlCdn,
         console: console,
         clone: clone,
@@ -3367,7 +3381,9 @@ filepicker.extend("widgets", function() {
             "data-fp-crop-min": "cropMin",
             "data-fp-show-close": "showClose",
             "data-fp-conversions": "conversions",
-            "data-fp-custom-text": "customText"
+            "data-fp-custom-text": "customText",
+            "data-fp-custom-source-conatiner": "customSourceContainer",
+            "data-fp-custom-source-path": "customSourcePath"
         }, pickOnlyOptionsMap = {
             "data-fp-mimetypes": "mimetypes",
             "data-fp-extensions": "extensions",
