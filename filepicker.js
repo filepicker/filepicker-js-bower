@@ -381,7 +381,7 @@ filepicker.extend("exporter", function() {
         if (options.openTo) {
             options.openTo = fp.services[options.openTo] || options.openTo;
         }
-        fp.util.setDefault(options, "container", fp.browser.isMobile ? "window" : "modal");
+        fp.util.setDefault(options, "container", fp.browser.openInModal() ? "modal" : "window");
     };
     var getExportHandler = function(onSuccess, onError) {
         var handler = function(data) {
@@ -407,6 +407,11 @@ filepicker.extend("exporter", function() {
     };
     var createExporter = function(input, options, onSuccess, onError) {
         normalizeOptions(options);
+        var api = {
+            close: function() {
+                fp.modal.close();
+            }
+        };
         if (options.debug) {
             setTimeout(function() {
                 onSuccess({
@@ -418,7 +423,7 @@ filepicker.extend("exporter", function() {
                     client: "computer"
                 });
             }, 1);
-            return;
+            return api;
         }
         if (fp.cookies.THIRD_PARTY_COOKIES === undefined) {
             var alreadyHandled = false;
@@ -428,7 +433,7 @@ filepicker.extend("exporter", function() {
                     alreadyHandled = true;
                 }
             });
-            return;
+            return api;
         }
         var id = fp.util.getId();
         var finished = false;
@@ -448,6 +453,7 @@ filepicker.extend("exporter", function() {
         };
         fp.window.open(options.container, fp.urls.constructExportUrl(input, options, id), onClose);
         fp.handlers.attach(id, getExportHandler(onSuccessMark, onErrorMark));
+        return api;
     };
     return {
         createExporter: createExporter
@@ -622,7 +628,7 @@ filepicker.extend("picker", function() {
         if (options.openTo) {
             options.openTo = fp.services[options.openTo] || options.openTo;
         }
-        fp.util.setDefault(options, "container", fp.browser.isMobile ? "window" : "modal");
+        fp.util.setDefault(options, "container", fp.browser.openInModal() ? "modal" : "window");
     };
     var getPickHandler = function(onSuccess, onError, onProgress) {
         var handler = function(data) {
@@ -719,6 +725,11 @@ filepicker.extend("picker", function() {
     };
     var createPicker = function(options, onSuccess, onError, multiple, folder, onProgress, convertFile) {
         normalizeOptions(options);
+        var api = {
+            close: function() {
+                fp.modal.close();
+            }
+        };
         if (options.debug) {
             var dumy_data = {
                 id: 1,
@@ -737,7 +748,7 @@ filepicker.extend("picker", function() {
             setTimeout(function() {
                 onSuccess(dumy_callback);
             }, 1);
-            return;
+            return api;
         }
         if (fp.cookies.THIRD_PARTY_COOKIES === undefined) {
             var alreadyHandled = false;
@@ -747,7 +758,7 @@ filepicker.extend("picker", function() {
                     alreadyHandled = true;
                 }
             });
-            return;
+            return api;
         }
         var id = fp.util.getId();
         var finished = false;
@@ -789,6 +800,7 @@ filepicker.extend("picker", function() {
         fp.handlers.attach(key, getUploadingHandler(function() {
             fp.handlers.detach(key);
         }));
+        return api;
     };
     function filterDataType(data, onProgress) {
         if (data.type === "filepickerProgress") {
@@ -825,11 +837,10 @@ filepicker.extend("window", function() {
     var CLOSE_CHECK_INTERVAL = 100;
     var openWindow = function(container, src, onClose) {
         onClose = onClose || function() {};
-        var isMobile = fp.browser.isIOS() || fp.browser.isAndroid();
-        if (!container && isMobile) {
-            container = "window";
-        } else if (!container) {
+        if (!container && fp.browser.openInModal()) {
             container = "modal";
+        } else if (!container) {
+            container = "window";
         }
         if (container === "window") {
             var name = WINDOW_NAME + fp.util.getId();
@@ -1001,7 +1012,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.3.4";
+    var fp = this, VERSION = "2.3.8";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -1024,7 +1035,7 @@ filepicker.extend(function() {
         options = options || {};
         onSuccess = onSuccess || function() {};
         onError = onError || fp.errors.handleError;
-        fp.picker.createPicker(options, onSuccess, onError, false, false, onProgress);
+        return fp.picker.createPicker(options, onSuccess, onError, false, false, onProgress);
     };
     var pickMultiple = function(options, onSuccess, onError, onProgress) {
         fp.util.checkApiKey();
@@ -1037,7 +1048,7 @@ filepicker.extend(function() {
         options = options || {};
         onSuccess = onSuccess || function() {};
         onError = onError || fp.errors.handleError;
-        fp.picker.createPicker(options, onSuccess, onError, true, false, onProgress);
+        return fp.picker.createPicker(options, onSuccess, onError, true, false, onProgress);
     };
     var pickAndStore = function(picker_options, store_options, onSuccess, onError, onProgress) {
         fp.util.checkApiKey();
@@ -1062,7 +1073,7 @@ filepicker.extend(function() {
                 onSuccess([ resp ]);
             };
         }
-        fp.picker.createPicker(options, success, onError, multiple, false, onProgress);
+        return fp.picker.createPicker(options, success, onError, multiple, false, onProgress);
     };
     var pickFolder = function(options, onSuccess, onError, onProgress) {
         fp.util.checkApiKey();
@@ -1074,7 +1085,7 @@ filepicker.extend(function() {
         options = options || {};
         onSuccess = onSuccess || function() {};
         onError = onError || fp.errors.handleError;
-        fp.picker.createPicker(options, onSuccess, onError, false, true, onProgress);
+        return fp.picker.createPicker(options, onSuccess, onError, false, true, onProgress);
     };
     var read = function(input, options, onSuccess, onError, onProgress) {
         fp.util.checkApiKey();
@@ -1225,7 +1236,7 @@ filepicker.extend(function() {
         if (options.suggestedFilename) {
             options.suggestedFilename = encodeURI(options.suggestedFilename);
         }
-        fp.exporter.createExporter(fp_url, options, onSuccess, onError);
+        return fp.exporter.createExporter(fp_url, options, onSuccess, onError);
     };
     var processImage = function(input, options, onSuccess, onError, onProgress) {
         var convertUrl;
@@ -1253,7 +1264,7 @@ filepicker.extend(function() {
         options.services = [ "CONVERT", "COMPUTER" ];
         options.backgroundUpload = true;
         options.hide = false;
-        fp.picker.createPicker(options, onSuccess, onError, false, false, onProgress, true);
+        return fp.picker.createPicker(options, onSuccess, onError, false, false, onProgress, true);
     };
     var store = function(input, options, onSuccess, onError, onProgress) {
         fp.util.checkApiKey();
@@ -1443,7 +1454,8 @@ filepicker.extend("mimetypes", function() {
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
         ".jpe": "image/jpeg",
-        ".imp": "application/x-impressionist"
+        ".imp": "application/x-impressionist",
+        ".vob": "video/dvd"
     };
     var mimetype_bad_array = [ "application/octet-stream", "application/download", "application/force-download", "octet/stream", "application/unknown", "application/x-download", "application/x-msdownload", "application/x-secure-download" ];
     var getMimetype = function(file) {
@@ -1571,7 +1583,7 @@ filepicker.extend("urls", function() {
         return parts.origin + "/404";
     };
     function constructModalQuery(options, id) {
-        return "?key=" + fp.apikey + "&id=" + id + "&referrer=" + window.location.hostname + "&iframe=" + (options.container !== "window") + "&version=" + fp.API_VERSION + (options.services ? "&s=" + options.services.join(",") : "") + (options.container !== undefined ? "&container=" + options.container : "modal") + (options.openTo ? "&loc=" + options.openTo : "") + "&language=" + (options.language || fp.browser.getLanguage()) + (options.mobile !== undefined ? "&mobile=" + options.mobile : "") + (options.backgroundUpload !== undefined ? "&bu=" + options.backgroundUpload : "") + (options.cropRatio ? "&cratio=" + options.cropRatio : "") + (options.cropDim ? "&cdim=" + options.cropDim.join(",") : "") + (options.cropMax ? "&cmax=" + options.cropMax.join(",") : "") + (options.cropMin ? "&cmin=" + options.cropMin.join(",") : "") + (options.cropForce !== undefined ? "&cforce=" + options.cropForce : "") + (options.hide !== undefined ? "&hide=" + options.hide : "") + (options.customCss ? "&css=" + encodeURIComponent(options.customCss) : "") + (options.customText ? "&text=" + encodeURIComponent(options.customText) : "") + (options.imageMin ? "&imin=" + options.imageMin.join(",") : "") + (options.imageMax ? "&imax=" + options.imageMax.join(",") : "") + (options.imageDim ? "&idim=" + options.imageDim.join(",") : "") + (options.imageQuality ? "&iq=" + options.imageQuality : "") + (fp.util.isCanvasSupported() ? "" : "&canvas=false") + (options.redirectUrl ? "&redirect_url=" + options.redirectUrl : "") + (options.showClose && options.container !== "modal" ? "&showClose=" + options.showClose : "") + constructSecurityQuery(options) + "&plugin=" + getPlugin();
+        return "?key=" + fp.apikey + "&id=" + id + "&referrer=" + window.location.hostname + "&iframe=" + (options.container !== "window") + "&version=" + fp.API_VERSION + (options.services ? "&s=" + options.services.join(",") : "") + (options.container !== undefined ? "&container=" + options.container : "modal") + (options.openTo ? "&loc=" + options.openTo : "") + "&language=" + (options.language || fp.browser.getLanguage()) + (options.mobile !== undefined ? "&mobile=" + options.mobile : "") + (options.backgroundUpload !== undefined ? "&bu=" + options.backgroundUpload : "") + (options.cropRatio ? "&cratio=" + options.cropRatio : "") + (options.cropDim ? "&cdim=" + options.cropDim.join(",") : "") + (options.cropMax ? "&cmax=" + options.cropMax.join(",") : "") + (options.cropMin ? "&cmin=" + options.cropMin.join(",") : "") + (options.cropForce !== undefined ? "&cforce=" + options.cropForce : "") + (options.hide !== undefined ? "&hide=" + options.hide : "") + (options.customCss ? "&css=" + encodeURIComponent(options.customCss) : "") + (options.customText ? "&text=" + encodeURIComponent(options.customText) : "") + (options.imageMin ? "&imin=" + options.imageMin.join(",") : "") + (options.imageMax ? "&imax=" + options.imageMax.join(",") : "") + (options.imageDim ? "&idim=" + options.imageDim.join(",") : "") + (options.imageQuality ? "&iq=" + options.imageQuality : "") + (options.noFileReader ? "&nfl=" + options.noFileReader : "") + (fp.util.isCanvasSupported() ? "" : "&canvas=false") + (options.redirectUrl ? "&redirect_url=" + options.redirectUrl : "") + (options.showClose && options.container !== "modal" ? "&showClose=" + options.showClose : "") + constructSecurityQuery(options) + "&plugin=" + getPlugin();
     }
     function constructSecurityQuery(options) {
         return (options.signature ? "&signature=" + options.signature : "") + (options.policy ? "&policy=" + options.policy : "");
@@ -2513,15 +2525,6 @@ filepicker.extend("browser", function() {
     var isAndroid = function() {
         return !!navigator.userAgent.match(/Android/i);
     };
-    var isIE7 = function() {
-        return !!navigator.userAgent.match(/MSIE 7\.0/i);
-    };
-    var isSafari = function() {
-        return navigator.userAgent.search("Safari") >= 0 && navigator.userAgent.search("Chrome") < 0;
-    };
-    var isMobileSafari = function() {
-        return !!(navigator.userAgent.match(/(iPod|iPhone|iPad)/) && navigator.userAgent.match(/AppleWebKit/) && !navigator.userAgent.match(/CriOS/));
-    };
     var getLanguage = function() {
         var language = window.navigator.userLanguage || window.navigator.language;
         if (language === undefined) {
@@ -2530,15 +2533,14 @@ filepicker.extend("browser", function() {
         language = language.replace("-", "_").toLowerCase();
         return language;
     };
-    var isMobile = isIOS() || isAndroid();
     return {
-        isIOS: isIOS,
-        isAndroid: isAndroid,
-        isIE7: isIE7,
-        isSafari: isSafari,
-        isMobileSafari: isMobileSafari,
         getLanguage: getLanguage,
-        isMobile: isMobile
+        openInModal: function() {
+            return !(isIOS() || isAndroid()) || !!window.navigator.standalone;
+        },
+        isMobile: function() {
+            return isIOS() || isAndroid();
+        }
     };
 });
 
