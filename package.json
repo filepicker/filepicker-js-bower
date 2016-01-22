@@ -1,6 +1,6 @@
 {
   "name": "filepicker-js-bower",
-  "version": "2.3.1",
+  "version": "2.3.8",
   "description": "Bower-friendly version of filepicker-js.",
   "main": "filepicker.min.js",
   "scripts": {
