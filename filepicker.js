@@ -899,6 +899,7 @@ filepicker.extend("conversions", function() {
         signature: "string",
         storeAccess: "string",
         storeContainer: "string",
+        storeRegion: "string",
         storeLocation: "string",
         storePath: "string",
         text: "string",
@@ -1012,7 +1013,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.3.8";
+    var fp = this, VERSION = "2.4.3";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -1061,6 +1062,7 @@ filepicker.extend(function() {
         options.storeLocation = store_options.location || "S3";
         options.storePath = store_options.path;
         options.storeContainer = store_options.storeContainer || store_options.container;
+        options.storeRegion = store_options.storeRegion;
         options.storeAccess = store_options.access || "private";
         if (multiple && options.storePath) {
             if (options.storePath.charAt(options.storePath.length - 1) !== "/") {
@@ -1249,9 +1251,9 @@ filepicker.extend(function() {
         options = options || {};
         onSuccess = onSuccess || function() {};
         onError = onError || fp.errors.handleError;
-        if (typeof input === "string" && fp.util.isFPUrlCdn(input)) {
+        if (typeof input === "string") {
             convertUrl = input;
-        } else if (input.url && fp.util.isFPUrl(input.url)) {
+        } else if (input.url) {
             convertUrl = input.url;
             if (!options.filename) {
                 options.filename = input.filename;
@@ -1417,6 +1419,9 @@ filepicker.extend(function() {
     var setResponsiveOptions = function(options) {
         return fp.responsiveImages.setResponsiveOptions(options);
     };
+    var responsive = function() {
+        fp.responsiveImages.update.apply(null, arguments);
+    };
     return {
         setKey: setKey,
         setResponsiveOptions: setResponsiveOptions,
@@ -1439,6 +1444,7 @@ filepicker.extend(function() {
         constructWidget: constructWidget,
         makeDropPane: makeDropPane,
         FilepickerException: FilepickerException,
+        responsive: responsive,
         version: VERSION
     };
 }, true);
@@ -1554,7 +1560,7 @@ filepicker.extend("urls", function() {
     var dialog_base = base.replace("www", "dialog"), pick_url = dialog_base + "/dialog/open/", export_url = dialog_base + "/dialog/save/", convert_url = dialog_base + "/dialog/process/", pick_folder_url = dialog_base + "/dialog/folder/", store_url = base + "/api/store/";
     var allowedConversions = [ "crop", "rotate", "filter" ];
     var constructPickUrl = function(options, id, multiple) {
-        return pick_url + constructModalQuery(options, id) + (multiple ? "&multi=" + !!multiple : "") + (options.mimetypes !== undefined ? "&m=" + options.mimetypes.join(",") : "") + (options.extensions !== undefined ? "&ext=" + options.extensions.join(",") : "") + (options.maxSize ? "&maxSize=" + options.maxSize : "") + (options.customSourceContainer ? "&customSourceContainer=" + options.customSourceContainer : "") + (options.customSourcePath ? "&customSourcePath=" + options.customSourcePath : "") + (options.maxFiles ? "&maxFiles=" + options.maxFiles : "") + (options.folders !== undefined ? "&folders=" + options.folders : "") + (options.storeLocation ? "&storeLocation=" + options.storeLocation : "") + (options.storePath ? "&storePath=" + options.storePath : "") + (options.storeContainer ? "&storeContainer=" + options.storeContainer : "") + (options.storeAccess ? "&storeAccess=" + options.storeAccess : "") + (options.webcamDim ? "&wdim=" + options.webcamDim.join(",") : "") + constructConversionsQuery(options.conversions);
+        return pick_url + constructModalQuery(options, id) + (multiple ? "&multi=" + !!multiple : "") + (options.mimetypes !== undefined ? "&m=" + options.mimetypes.join(",") : "") + (options.extensions !== undefined ? "&ext=" + options.extensions.join(",") : "") + (options.maxSize ? "&maxSize=" + options.maxSize : "") + (options.customSourceContainer ? "&customSourceContainer=" + options.customSourceContainer : "") + (options.customSourcePath ? "&customSourcePath=" + options.customSourcePath : "") + (options.maxFiles ? "&maxFiles=" + options.maxFiles : "") + (options.folders !== undefined ? "&folders=" + options.folders : "") + (options.storeLocation ? "&storeLocation=" + options.storeLocation : "") + (options.storePath ? "&storePath=" + options.storePath : "") + (options.storeContainer ? "&storeContainer=" + options.storeContainer : "") + (options.storeRegion ? "&storeRegion=" + options.storeRegion : "") + (options.storeAccess ? "&storeAccess=" + options.storeAccess : "") + (options.webcam && options.webcam.webcamDim ? "&wdim=" + options.webcam.webcamDim.join(",") : "") + (options.webcamDim ? "&wdim=" + options.webcamDim.join(",") : "") + (options.webcam && options.webcam.videoRes ? "&videoRes=" + options.webcam.videoRes : "") + constructConversionsQuery(options.conversions);
     };
     var constructConvertUrl = function(options, id) {
         var url = options.convertUrl;
@@ -3028,27 +3034,16 @@ filepicker.extend("dragdrop", function() {
             if (!enabled()) {
                 return false;
             }
-            var i;
-            var items;
-            var entry;
-            if (e.dataTransfer.items) {
-                items = e.dataTransfer.items;
-                for (i = 0; i < items.length; i++) {
-                    entry = items[i] && items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : undefined;
-                    if (entry && !!entry.isDirectory) {
-                        onError("WrongType", "Uploading a folder is not allowed");
-                        return false;
-                    }
-                }
+            if (isFolderDropped(e)) {
+                return false;
             }
-            var files = e.dataTransfer.files;
-            var total = files.length;
-            if (verifyUpload(files)) {
-                onStart(files);
-                div.setAttribute("disabled", "disabled");
-                for (i = 0; i < files.length; i++) {
-                    fp.store(files[i], store_options, getSuccessHandler(i, total), errorHandler, getProgressHandler(i, total));
-                }
+            var files = e.dataTransfer.files, imageSrc = getImageSrcDrop(e.dataTransfer);
+            if (files.length) {
+                uploadDroppedFiles(files);
+            } else if (imageSrc) {
+                uploadImageSrc(imageSrc);
+            } else {
+                onError("NoFilesFound", "No files uploaded");
             }
             return false;
         });
@@ -3142,7 +3137,61 @@ filepicker.extend("dragdrop", function() {
             }
             return false;
         };
+        var getImageSrcDrop = function(dataTransfer) {
+            var url, matched;
+            if (dataTransfer && typeof dataTransfer.getData === "function") {
+                url = dataTransfer.getData("text");
+                try {
+                    url = url || dataTransfer.getData("text/html");
+                } catch (e) {
+                    fp.util.console.error(e);
+                }
+                if (url && !fp.util.isUrl(url)) {
+                    matched = url.match(/<img.*?src="(.*?)"/i);
+                    url = matched && matched.length > 1 ? matched[1] : null;
+                }
+            }
+            return url;
+        };
         return true;
+        function onSuccessSrcUpload(blob) {
+            var successHandlerForOneFile = getSuccessHandler(0, 1);
+            var blobToCheck = fp.util.clone(blob);
+            blobToCheck.name = blobToCheck.filename;
+            if (verifyUpload([ blobToCheck ])) {
+                successHandlerForOneFile(blob);
+            } else {
+                fp.files.remove(blob.url, store_options, function() {}, function() {});
+            }
+        }
+        function uploadDroppedFiles(files) {
+            var total = files.length, i;
+            if (verifyUpload(files)) {
+                onStart(files);
+                div.setAttribute("disabled", "disabled");
+                for (i = 0; i < files.length; i++) {
+                    fp.store(files[i], store_options, getSuccessHandler(i, total), errorHandler, getProgressHandler(i, total));
+                }
+            }
+        }
+        function uploadImageSrc(imageSrc) {
+            var progressHandlerForOneFile = getProgressHandler(0, 1);
+            fp.storeUrl(imageSrc, onSuccessSrcUpload, errorHandler, progressHandlerForOneFile);
+        }
+        function isFolderDropped(event) {
+            var entry, items, i;
+            if (event.dataTransfer.items) {
+                items = event.dataTransfer.items;
+                for (i = 0; i < items.length; i++) {
+                    entry = items[i] && items[i].webkitGetAsEntry ? items[i].webkitGetAsEntry() : undefined;
+                    if (entry && !!entry.isDirectory) {
+                        onError("WrongType", "Uploading a folder is not allowed");
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     };
     return {
         enabled: canDragDrop,
@@ -3161,6 +3210,7 @@ filepicker.extend("responsiveImages", function() {
     return {
         activate: activate,
         deactivate: deactivate,
+        update: update,
         setResponsiveOptions: setResponsiveOptions,
         getResponsiveOptions: getResponsiveOptions,
         getElementDims: getElementDims,
@@ -3180,11 +3230,22 @@ filepicker.extend("responsiveImages", function() {
     function deactivate() {
         removeWindowResizeEvent(reloadWithDebounce);
     }
-    function constructAll() {
+    function update(element) {
+        if (element !== undefined) {
+            if (element.nodeName === "IMG") {
+                construct(element);
+            } else {
+                throw new fp.FilepickerException("Passed object is not an image");
+            }
+        } else {
+            constructAll(true);
+        }
+    }
+    function constructAll(forceConstruct) {
         var responsiveImages = document.querySelectorAll("img[data-fp-src]"), element, i;
         for (i = 0; i < responsiveImages.length; i++) {
             element = responsiveImages[i];
-            if (shouldConstruct(element)) {
+            if (shouldConstruct(element) || forceConstruct === true) {
                 construct(element);
             }
         }
@@ -3258,7 +3319,7 @@ filepicker.extend("responsiveImages", function() {
         return fp.conversionsUtil.parseUrl(url).optionsDict.resize || {};
     }
     function construct(elem) {
-        var url = getFpSrcAttr(elem), apikey = getFpKeyAttr(elem) || fp.apikey, responsiveOptions = getResponsiveOptions();
+        var url = getFpSrcAttr(elem) || getSrcAttr(elem), apikey = getFpKeyAttr(elem) || fp.apikey, responsiveOptions = getResponsiveOptions();
         if (!fp.apikey) {
             fp.setKey(apikey);
             fp.util.checkApiKey();
@@ -3384,7 +3445,7 @@ filepicker.extend("widgets", function() {
             "data-fp-show-close": "showClose",
             "data-fp-conversions": "conversions",
             "data-fp-custom-text": "customText",
-            "data-fp-custom-source-conatiner": "customSourceContainer",
+            "data-fp-custom-source-container": "customSourceContainer",
             "data-fp-custom-source-path": "customSourcePath"
         }, pickOnlyOptionsMap = {
             "data-fp-mimetypes": "mimetypes",
@@ -3394,11 +3455,14 @@ filepicker.extend("widgets", function() {
             "data-fp-store-location": "storeLocation",
             "data-fp-store-path": "storePath",
             "data-fp-store-container": "storeContainer",
+            "data-fp-store-region": "storeRegion",
             "data-fp-store-access": "storeAccess",
             "data-fp-image-quality": "imageQuality",
             "data-fp-image-dim": "imageDim",
             "data-fp-image-max": "imageMax",
-            "data-fp-image-min": "imageMin",
+            "data-fp-image-min": "imageMin"
+        }, webcamOptionsMap = {
+            "data-fp-video-recording-resolution": "videoRes",
             "data-fp-webcam-dim": "webcamDim"
         };
         setAttrIfExistsArray(fpoptions, domElement, generalOptionsMap);
@@ -3406,6 +3470,8 @@ filepicker.extend("widgets", function() {
             setAttrIfExists("suggestedFilename", fpoptions, "data-fp-suggestedFilename", domElement);
         } else if (mode === "pick") {
             setAttrIfExistsArray(fpoptions, domElement, pickOnlyOptionsMap);
+            fpoptions.webcam = {};
+            setAttrIfExistsArray(fpoptions.webcam, domElement, webcamOptionsMap);
         }
         var services = domElement.getAttribute("data-fp-services");
         if (services) {
@@ -3601,6 +3667,7 @@ filepicker.extend("widgets", function() {
             location: fpoptions.storeLocation,
             path: fpoptions.storePath,
             container: fpoptions.storeContainer,
+            region: fpoptions.storeRegion,
             access: fpoptions.storeAccess,
             policy: fpoptions.policy,
             signature: fpoptions.signature,
