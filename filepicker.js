@@ -1013,7 +1013,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.5";
+    var fp = this, VERSION = "2.4.7";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -2996,6 +2996,11 @@ filepicker.extend("dragdrop", function() {
         }
         if (fp.util.typeOf(extensions) === "string") {
             extensions = extensions.replace(/ /g, "").split(",");
+        }
+        if (extensions) {
+            for (var i = 0; i < extensions.length; i++) {
+                extensions[i] = extensions[i].toLowerCase();
+            }
         }
         var store_options = {
             location: options.location,
