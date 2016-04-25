@@ -638,12 +638,17 @@ filepicker.extend("picker", function() {
             fp.uploading = false;
             if (data.error) {
                 fp.util.console.error(data.error);
-                onError(fp.errors.FPError(102));
+                if (data.error.code) {
+                    onError(fp.errors.FPError(data.error.code));
+                } else {
+                    onError(fp.errors.FPError(102));
+                    fp.modal.close();
+                }
             } else {
                 var fpfile = fpfileFromPayload(data.payload);
                 onSuccess(fpfile);
+                fp.modal.close();
             }
-            fp.modal.close();
         };
         return handler;
     };
@@ -814,7 +819,7 @@ filepicker.extend("picker", function() {
             fp.modal.close();
         } else if (data.type === "hideModal") {
             fp.modal.hide();
-        } else if (data.type === "filepickerUrl") {
+        } else if (data.type === "filepickerUrl" || data.type === "serverHttpError") {
             return false;
         }
         return true;
@@ -1013,7 +1018,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.7";
+    var fp = this, VERSION = "2.4.8";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
