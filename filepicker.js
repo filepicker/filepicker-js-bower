@@ -696,6 +696,12 @@ filepicker.extend("picker", function() {
         fpfile.filename = data.filename;
         fpfile.mimetype = data.type;
         fpfile.size = data.size;
+        if (data.cropped !== undefined) {
+            fpfile.cropped = data.cropped;
+        }
+        if (data.rotated !== undefined) {
+            fpfile.rotated = data.rotated;
+        }
         addIfExist(data, fpfile, "id");
         addIfExist(data, fpfile, "key");
         addIfExist(data, fpfile, "container");
@@ -1018,7 +1024,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.8";
+    var fp = this, VERSION = "2.4.9";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
