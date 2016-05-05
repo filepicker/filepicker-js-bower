@@ -1024,7 +1024,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.9";
+    var fp = this, VERSION = "2.4.10";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -2848,7 +2848,7 @@ filepicker.extend("util", function() {
     };
     var getFPUrl = function(url) {
         if (typeof url === "string") {
-            var matched = url.match(/cdn.filestackcontent.[\S]*\/([\S]{20,})/);
+            var matched = url.match(/(?:cdn.filestackcontent.com|cdn.filepicker.io)[\S]*\/([\S]{20,})/);
             if (matched && matched.length > 1) {
                 return fp.urls.BASE + "/api/file/" + matched[1];
             }
@@ -3816,6 +3816,7 @@ filepicker.extend("widgets", function() {
     };
     var constructPreview = function(domElement) {
         var url = domElement.getAttribute("data-fp-url"), css = domElement.getAttribute("data-fp-custom-css");
+        var url = fp.util.getFPUrl(url);
         if (!url || !fp.util.isFPUrl(url)) {
             return true;
         } else {
