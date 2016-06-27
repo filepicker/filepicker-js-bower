@@ -1027,7 +1027,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.11";
+    var fp = this, VERSION = "2.4.12";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -2788,7 +2788,7 @@ filepicker.extend("util", function() {
         return o && Object.prototype.toString.call(o) === "[object Array]";
     };
     var isFile = function(o) {
-        return o && Object.prototype.toString.call(o) === "[object File]";
+        return o && (Object.prototype.toString.call(o) === "[object File]" || Object.prototype.toString.call(o) === "[object Blob]");
     };
     var isElement = function(o) {
         if (typeof window.HTMLElement === "object") {
