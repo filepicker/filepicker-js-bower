@@ -1030,7 +1030,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.15";
+    var fp = this, VERSION = "2.4.16";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -1443,7 +1443,8 @@ filepicker.extend(function() {
         options = options || {};
         fp.ajax.get(fp.urls.LOGOUT, {
             success: options.onSuccess,
-            error: options.onError
+            error: options.onError,
+            withCredentials: true
         });
     };
     return {
@@ -1813,7 +1814,9 @@ filepicker.extend("ajax", function() {
             url += (url.indexOf("?") !== -1 ? "&" : "?") + data;
             data = null;
         }
-        xhr.withCredentials = true;
+        if (options.withCredentials) {
+            xhr.withCredentials = true;
+        }
         xhr.open(method, url, async);
         if (options.json) {
             xhr.setRequestHeader("Accept", "application/json, text/javascript");
