@@ -90,8 +90,12 @@ filepicker.extend("comm", function() {
         if (event.origin !== fp.urls.BASE && event.origin !== fp.urls.DIALOG_BASE) {
             return;
         }
-        var data = fp.json.parse(event.data);
-        fp.handlers.run(data);
+        try {
+            var data = fp.json.parse(event.data);
+            fp.handlers.run(data);
+        } catch (err) {
+            console.log("[Filepicker] Failed processing message:", event.data);
+        }
     };
     var isOpen = false;
     var openCommunicationsChannel = function() {
@@ -1030,7 +1034,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.16";
+    var fp = this, VERSION = "2.4.17";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
@@ -2867,7 +2871,7 @@ filepicker.extend("util", function() {
     };
     var getFPUrl = function(url) {
         if (typeof url === "string") {
-            var matched = url.match(/(?:cdn.filestackcontent.com|cdn.filepicker.io)[\S]*\/([\S]{20,})/);
+            var matched = url.match(/(?:^https?:\/\/cdn.filestackcontent.com|^https?:\/\/cdn.filepicker.io)[\S]*\/([\S]{20,})/);
             if (matched && matched.length > 1) {
                 return fp.urls.BASE + "/api/file/" + matched[1];
             }
