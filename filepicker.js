@@ -92,9 +92,11 @@ filepicker.extend("comm", function() {
         }
         try {
             var data = fp.json.parse(event.data);
-            fp.handlers.run(data);
         } catch (err) {
             console.log("[Filepicker] Failed processing message:", event.data);
+        }
+        if (data) {
+            fp.handlers.run(data);
         }
     };
     var isOpen = false;
@@ -1034,7 +1036,7 @@ filepicker.extend("errors", function() {
 "use strict";
 
 filepicker.extend(function() {
-    var fp = this, VERSION = "2.4.17";
+    var fp = this, VERSION = "2.4.18";
     fp.API_VERSION = "v2";
     var setKey = function(key) {
         fp.apikey = key;
